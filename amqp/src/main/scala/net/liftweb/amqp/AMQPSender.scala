@@ -1,5 +1,5 @@
 /*
- * Copyright 2007-2010 WorldWide Conferencing, LLC
+ * Copyright 2007-2011 WorldWide Conferencing, LLC
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,13 +14,13 @@
  * limitations under the License.
  */
 
-package net.liftweb {
-package amqp {
+package net.liftweb 
+package amqp 
 
-import _root_.net.liftweb.actor._
-import _root_.com.rabbitmq.client._
-import _root_.java.io.ByteArrayOutputStream
-import _root_.java.io.ObjectOutputStream
+import net.liftweb.actor._
+import com.rabbitmq.client._
+import java.io.ByteArrayOutputStream
+import java.io.ObjectOutputStream
 
 /**
  * An actor with a long-lived connection to an AMQP exchange/queue.
@@ -37,7 +37,7 @@ abstract class AMQPSender[T](cf: ConnectionFactory, host: String, port: Int, exc
    */
   def configure(channel: Channel): AnyRef
 
-  def send(msg: T) {
+  def sendMsg(msg: T) {
     // Now write an object to a byte array and shove it across the wire.
     val bytes = new ByteArrayOutputStream
     val store = new ObjectOutputStream(bytes)
@@ -135,5 +135,3 @@ object AMQPExampleFunPack {
   }
 }
 
-}
-}
