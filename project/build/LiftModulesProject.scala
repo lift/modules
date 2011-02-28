@@ -26,11 +26,11 @@ class LiftModulesProject(info: ProjectInfo) extends ParentProject(info) with Lif
   object LiftDependencies {
     // Lift dependencies
     lazy val lift_common = "net.liftweb" %% "lift-common" % liftVersion
-    lazy val lift_actor  = "net.liftweb" %% "lift-actor" % liftVersion
-    lazy val lift_json   = "net.liftweb" %% "lift-jason" % liftVersion
-    lazy val lift_util   = "net.liftweb" %% "lift-util" % liftVersion
+    lazy val lift_actor  = "net.liftweb" %% "lift-actor"  % liftVersion
+    lazy val lift_json   = "net.liftweb" %% "lift-jason"  % liftVersion
+    lazy val lift_util   = "net.liftweb" %% "lift-util"   % liftVersion
     lazy val lift_webkit = "net.liftweb" %% "lift-webkit" % liftVersion
-    lazy val lift_db     = "net.liftweb" %% "lift-db" % liftVersion
+    lazy val lift_db     = "net.liftweb" %% "lift-db"     % liftVersion
     lazy val lift_mapper = "net.liftweb" %% "lift-mapper" % liftVersion
   }
 
@@ -71,32 +71,15 @@ class LiftModulesProject(info: ProjectInfo) extends ParentProject(info) with Lif
   // ------------
   class ModulesProject(info: ProjectInfo, libs: ModuleID*) extends DefaultProject(info) with LiftDefaultProject {
 
-    override def libraryDependencies = super.libraryDependencies ++ libs ++ Seq(TestScope.junit)
+    override def libraryDependencies = super.libraryDependencies ++ libs
 
-    // TODO: Remove these and resort to LiftDefaultProject settings
-    override def compileOptions = Seq("-Xwarninit", "-encoding", "utf8").map(CompileOption)
-
-    // System property hack for derby.log, webapptests
+    // System properties necessary during test
     override def testAction =
       super.testAction dependsOn
       task {
-        System.setProperty("derby.stream.error.file", (outputPath / "derby.log").absString)
-        System.setProperty("net.liftweb.webapptest.src.test.webapp", (testSourcePath / "webapp").absString)
+        System.setProperty("textile.relax", "true")
         None
       }
-
-    // FIXME: breaks with SBT
-    override def testOptions =
-      ExcludeTests(
-        // Core tests
-        "net.liftweb.util.ActorPingUnit" :: "net.liftweb.util.ActorPingSpec" ::
-        // Web tests
-        "net.liftweb.webapptest.OneShot" :: "net.liftweb.webapptest.ToHeadUsages" :: "net.liftweb.http.SnippetSpec" ::
-        // Persistence tests
-        "net.liftweb.mapper.MapperSpecs" :: "net.liftweb.squerylrecord.SquerylRecordSpecs" ::
-        // LDAP
-        "net.liftweb.ldap.LdapSpecs" :: Nil) ::
-      super.testOptions.toList
   }
 
 }

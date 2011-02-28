@@ -1,5 +1,5 @@
 /*
- * Copyright 2008-2010 WorldWide Conferencing, LLC
+ * Copyright 2008-2011 WorldWide Conferencing, LLC
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,19 +14,17 @@
  * limitations under the License.
  */
 
-package net.liftweb {
-package textile {
+package net.liftweb
+package textile
 
-import _root_.org.specs._
-import _root_.org.specs.runner._
-import _root_.org.specs.Sugar._
+import xml._
 
-import _root_.scala.xml._
+import org.specs.Specification
 
-import _root_.net.liftweb.common._
-import _root_.net.liftweb.util._
+import common._
+import util._
 
-class TextileSpecTest extends Runner(TextileSpec) with JUnit with Console
+
 object TextileSpec extends Specification {
 
   val shouldRelax = (java.lang.Boolean.getBoolean("textile.relax"))
@@ -38,7 +36,7 @@ object TextileSpec extends Specification {
       toHtml("foo __bar__") must ==/(<p>foo <i>bar</i></p> )
     }
 
-    "multi-line div" in {
+    "deal with multi-line div" in {
       val div =
 """<div class="vcard">
    <div class="fn">Joe Doe</div>
@@ -506,7 +504,4 @@ We use CSS(Cascading Style Sheets).
 * This is a line with no markup
 """
 
-}
-
-}
 }

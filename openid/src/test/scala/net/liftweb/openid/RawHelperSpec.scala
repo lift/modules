@@ -15,27 +15,22 @@
  */
 
 package net.liftweb
-package imaging
+package openid
 
+import java.util.{List, ArrayList}
 
 import org.specs.Specification
 
 
-object ImageResizerSpec extends Specification  {
-  
-  "ImageResizer scaledMaxDim function" should {
-    "be invariant" in {
-      val range  = (1 to 10)
-      for {w <- range
-           h <- range
-           maxW <- range
-           maxH <- range}{
-        val (scaledWidth, scaledHeight) = ImageResizer.scaledMaxDim(w,h, maxW,maxH)
-        
-        (scaledWidth) must beLessThanOrEqualTo(maxW)
-        (scaledHeight) must beLessThanOrEqualTo(maxH)
-        (scaledWidth == maxW || scaledHeight == maxH) must beTrue
-      }
+object RawHelperSpec extends Specification {
+  "RawUtils" should {
+    "Convert a java.util.List" in {
+      val org: List[Object] = new ArrayList[Object]()
+      
+      org.add("Hello")
+      org.add("Woof")
+
+      RawHelper.rawJUL2List[String](org) must_== scala.List("Hello", "Woof")
     }
-  } 
+  }
 }

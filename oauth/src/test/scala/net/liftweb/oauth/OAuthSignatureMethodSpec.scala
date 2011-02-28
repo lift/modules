@@ -1,5 +1,5 @@
 /*
- * Copyright 2010 WorldWide Conferencing, LLC
+ * Copyright 2010-2011 WorldWide Conferencing, LLC
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,21 +14,19 @@
  * limitations under the License.
  */
 
-package net.liftweb {
-package oauth {
+package net.liftweb
+package oauth
 
-import _root_.org.specs._
-import _root_.org.specs.runner._
-import _root_.org.specs.Sugar._
-
-import net.liftweb.http.GetRequest
-
-import net.liftweb.oauth.OAuthUtil.Parameter
-
-import net.liftweb.common.{Box,Full,Empty}
 import java.util.Date
-      
-class OAuthSignatureMethodSpecTest extends Runner(OAuthSignatureMethodSpec) with JUnit with Console
+
+import org.specs.Specification
+
+import common.{Full,Empty}
+import http.GetRequest
+
+import OAuthUtil.Parameter
+
+
 object OAuthSignatureMethodSpec extends Specification {
   val oauthAccessor = OAuthAccessor(FakeConsumer("dpf43f3p2l4k3l03","kd94hf93k423kf44"), Full("pfkkdhi9sl3r4s00"), Empty)
   val hmacSha1 = HMAC_SHA1(oauthAccessor)
@@ -76,7 +74,4 @@ object OAuthSignatureMethodSpec extends Specification {
 
     def xdatetime: Date = new Date(0)
   }
-}
-
-}
 }
