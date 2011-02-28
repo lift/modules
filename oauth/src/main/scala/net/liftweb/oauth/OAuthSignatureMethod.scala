@@ -1,5 +1,5 @@
 /*
- * Copyright 2010 WorldWide Conferencing, LLC
+ * Copyright 2010-2011 WorldWide Conferencing, LLC
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,16 +14,17 @@
  * limitations under the License.
  */
 
-package net.liftweb {
-package oauth {
+package net.liftweb
+package oauth
 
 import java.net.URI
 import javax.crypto.Mac
-import javax.crypto.SecretKey
 import javax.crypto.spec.SecretKeySpec
+
+import common._
+import util.Helpers
 import net.liftweb.http._
-import net.liftweb.common._
-import net.liftweb.util.Helpers
+
 
 abstract class OAuthSignatureMethod(accessor: OAuthAccessor) {
   def validate(message: OAuthMessage): Box[OAuthMessage] =
@@ -66,7 +67,7 @@ abstract class OAuthSignatureMethod(accessor: OAuthAccessor) {
 
   private def normalizeParameters(parameters: List[OAuthUtil.Parameter]) = {
     val filteredParameters = parameters.filter(_.name != OAuthUtil.OAUTH_SIGNATURE)
-    val sortedParameters = filteredParameters.sort((p1, p2) => {
+    val sortedParameters = filteredParameters.sortWith((p1, p2) => {
         val k1 = OAuthUtil.percentEncode(p1.name) + ' ' + OAuthUtil.percentEncode(p1.value)
         val k2 = OAuthUtil.percentEncode(p2.name) + ' ' + OAuthUtil.percentEncode(p2.value)
         k1.compareTo(k2) <= 0
@@ -150,7 +151,4 @@ class PLAINTEXT(accessor: OAuthAccessor) extends OAuthSignatureMethod(accessor) 
 
 object PLAINTEXT extends OAuthSignatureMethodBuilder {
   def apply(accessor: OAuthAccessor): OAuthSignatureMethod = new PLAINTEXT(accessor)
-}
-
-}
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright 2007-2010 WorldWide Conferencing, LLC
+ * Copyright 2007-2011 WorldWide Conferencing, LLC
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,21 +14,24 @@
  * limitations under the License.
  */
 
-package net.liftweb {
-package widgets {
-package calendars {
+package net.liftweb
+package widgets
+package calendars
 
-import _root_.scala.xml._
-import _root_.java.util.{Calendar, Locale}
-import _root_.java.util.Calendar._
-import _root_.java.text.SimpleDateFormat
-import _root_.net.liftweb.util.Helpers._
-import _root_.net.liftweb.common.{Box, Full, Empty}
-import _root_.net.liftweb.http.{LiftRules}
-import _root_.net.liftweb.http.js._
-import _root_.net.liftweb.http.SHtml._
+import java.util.{Calendar, Locale}
+import java.util.Calendar._
+
+import xml._
+
+import common.Box
+import util.Helpers._
+
+import http.LiftRules
+import http.js._
+import http.SHtml._
 import JsCmds._
 import JE._
+
 
 object CalendarDayView {
 
@@ -94,7 +97,7 @@ class CalendarDayView(val when: Calendar, val meta: DayViewMeta) {
     <div class="dayHead">
       <table cellspacing="0" cellpading="0" style="width: 100%;">
        <tr>
-         <td  class="dayHour"><div></div></td>
+         <td class="dayHour"><div></div></td>
             <td class="dayHeadCell">{
                 val time = cal.getTime
                 meta.weekDaysFormatter.format(time) + " " + dateFormatter.format(time)
@@ -108,7 +111,7 @@ class CalendarDayView(val when: Calendar, val meta: DayViewMeta) {
         val cal = Calendar getInstance;
         cal set(HOUR_OF_DAY, 0)
         cal set(MINUTE, 0)
-        for (val i <- 0 to 23) yield
+        for (i <- 0 to 23) yield
         try{
           <tr>
             <td class="dayHour"><div>{(meta.timeFormatter format(cal getTime)).toString}</div></td>
@@ -129,8 +132,4 @@ class CalendarDayView(val when: Calendar, val meta: DayViewMeta) {
     </div>
     </div>
   }
-}
-
-}
-}
 }

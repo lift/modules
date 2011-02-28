@@ -1,5 +1,5 @@
 /*
- * Copyright 2010 WorldWide Conferencing, LLC
+ * Copyright 2010-2011 WorldWide Conferencing, LLC
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,31 +14,23 @@
  * limitations under the License.
  */
 
-package net.liftweb {
-package imaging {
+package net.liftweb
+package imaging
 
-
-import java.awt.{Graphics2D, Graphics, Transparency, AlphaComposite, RenderingHints}
-import java.awt.geom.AffineTransform 
-import java.awt.image.{AffineTransformOp, BufferedImage, ColorModel, IndexColorModel}
-import javax.imageio.{IIOImage, ImageIO, ImageWriteParam}
-
-import org.apache.sanselan.ImageReadException
-import org.apache.sanselan.Sanselan
-import org.apache.sanselan.ImageFormat
-import org.apache.sanselan.common.IImageMetadata
-import org.apache.sanselan.common.RationalNumber
-import org.apache.sanselan.formats.jpeg.JpegImageMetadata
-import org.apache.sanselan.formats.tiff.TiffField
-import org.apache.sanselan.formats.tiff.TiffImageMetadata
-import org.apache.sanselan.formats.tiff.constants.TagInfo
-import org.apache.sanselan.formats.tiff.constants.TiffConstants
-import org.apache.sanselan.formats.tiff.constants.TiffTagConstants
 
 import java.io.{InputStream,ByteArrayOutputStream,ByteArrayInputStream}
+import java.awt.{Graphics2D, Transparency, RenderingHints}
+import java.awt.image.BufferedImage
+import javax.imageio.{IIOImage, ImageIO, ImageWriteParam}
 
-import net.liftweb.common.{Box, Full, Empty}
-import net.liftweb.util.Helpers
+import org.apache.sanselan.Sanselan
+import org.apache.sanselan.ImageFormat
+import org.apache.sanselan.formats.jpeg.JpegImageMetadata
+import org.apache.sanselan.formats.tiff.constants.TiffTagConstants
+
+import common.{Box, Full, Empty}
+import util.Helpers
+
 
 object ImageOutFormat extends Enumeration("png", "jpg", "gif", "bmp"){
   val png,jpeg,gif,bmp = Value
@@ -227,17 +219,17 @@ class ImageResizer(renderingHintsMap:Map[java.awt.RenderingHints.Key,Any], multi
       val (tW, tH, rotFunc) =  orientation match {
         case Full(ImageOrientation.rotate180) =>
           (targetWidth, targetHeight, (g2:Graphics2D) => {
-            g2.rotate(Math.Pi)
+            g2.rotate(math.Pi)
             g2.translate(-targetWidth, -targetHeight)
           })
         case Full(ImageOrientation.rotate270) =>
           (targetHeight, targetWidth, (g2:Graphics2D) => {
-            g2.rotate(Math.Pi/2)
+            g2.rotate(math.Pi/2)
             g2.translate(0, -targetHeight)
           })
         case Full(ImageOrientation.rotate90) =>
           (targetHeight, targetWidth, (g2:Graphics2D) => {
-            g2.rotate(-Math.Pi/2)
+            g2.rotate(-math.Pi/2)
             g2.translate(-targetWidth, 0)
           })
         case _ => (targetWidth, targetHeight, (g2:Graphics2D) => {})
@@ -253,6 +245,4 @@ class ImageResizer(renderingHintsMap:Map[java.awt.RenderingHints.Key,Any], multi
     ret
   }
      
-} //ImageResizer
-} //imaging
-} //net.liftweb
+}

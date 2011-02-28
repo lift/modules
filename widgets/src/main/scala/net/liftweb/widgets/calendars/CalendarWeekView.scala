@@ -1,5 +1,5 @@
 /*
- * Copyright 2007-2010 WorldWide Conferencing, LLC
+ * Copyright 2007-2011 WorldWide Conferencing, LLC
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,21 +14,22 @@
  * limitations under the License.
  */
 
-package net.liftweb {
-package widgets {
-package calendars {
+package net.liftweb
+package widgets
+package calendars
 
-import _root_.scala.xml._
-import _root_.java.util.{Calendar, Locale}
-import _root_.java.util.Calendar._
-import _root_.java.text.SimpleDateFormat
-import _root_.net.liftweb.util.Helpers._
-import _root_.net.liftweb.common.{Box, Full, Empty}
-import _root_.net.liftweb.http.{LiftRules}
-import _root_.net.liftweb.http.js._
-import _root_.net.liftweb.http.SHtml._
+import java.util.{Calendar, Locale}
+import Calendar._
+
+import xml._
+
+import common.Box
+import util.Helpers._
+import http.LiftRules
+import http.js._
 import JsCmds._
 import JE._
+
 
 object CalendarWeekView {
 
@@ -120,7 +121,7 @@ class CalendarWeekView(val when: Calendar, val meta: WeekViewMeta) {
        <tr>
          <td  class="wkHour"><div></div></td>
          {
-          (for (val day <- 0 to 6) yield
+          (for (day <- 0 to 6) yield
               <td class="wkHeadCell">{
                 try{
                   val time = headCal.getTime
@@ -140,13 +141,13 @@ class CalendarWeekView(val when: Calendar, val meta: WeekViewMeta) {
         val cal = Calendar getInstance;
         cal set(HOUR_OF_DAY, 0)
         cal set(MINUTE, 0)
-        for (val i <- 0 to 23) yield
+        for (i <- 0 to 23) yield
         try{
           <tr>
             <td class="wkHour"><div>{(meta.timeFormatter format(cal getTime)).toString}</div></td>
            {
               <td id={("wkhidx_" + startIndex + "_" + (i*2 toString))} class="wkCell borderDashed"></td> ++
-                (for (val day <- 1 to 6) yield {
+                (for (day <- 1 to 6) yield {
                     <td id={("wkhidx_" + (f(day, startIndex)) + "_" + (i*2 toString))} class="wkCell borderDashed borderLeft"></td>
                  }
                 )
@@ -156,7 +157,7 @@ class CalendarWeekView(val when: Calendar, val meta: WeekViewMeta) {
             <td class="wkHour borderSolid"></td>
             {
               <td id={("wkhidx_" + startIndex + "_" + ((i*2+1) toString))} class="wkCell borderSolid"></td> ++
-                (for (val day <- 1 to 6) yield
+                (for (day <- 1 to 6) yield
                     <td id={("wkhidx_" + (f(day, startIndex)) + "_" + ((i*2+1) toString))} class="wkCell borderSolid borderLeft"></td>
                 )
             }
@@ -168,8 +169,4 @@ class CalendarWeekView(val when: Calendar, val meta: WeekViewMeta) {
     </div>
     </div>
   }
-}
-
-}
-}
 }

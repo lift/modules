@@ -1,5 +1,5 @@
 /*
- * Copyright 2007-2010 WorldWide Conferencing, LLC
+ * Copyright 2007-2011 WorldWide Conferencing, LLC
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,14 +18,14 @@ package net.liftweb {
 package ext_api {
 package facebook {
 
-import _root_.java.net.{HttpURLConnection, URL, URLEncoder}
-import _root_.java.io.DataOutputStream
-import _root_.java.io.InputStream
-import _root_.java.util.Date
+import java.net.{HttpURLConnection, URL, URLEncoder}
+import java.io.DataOutputStream
+import java.io.InputStream
+import java.util.Date
 
-import _root_.scala.xml.{Node, XML, NodeSeq}
+import xml.{Node, XML, NodeSeq}
 
-import _root_.net.liftweb.util.Helpers._
+import util.Helpers._
 
 object FacebookRestApi {
   def apiKey = System.getProperty("com.facebook.api_key")
@@ -61,7 +61,7 @@ object FacebookClient {
 
   def genSignature(allParams: List[(String, Any)], secret: String): String = {
     val md = _root_.java.security.MessageDigest.getInstance("MD5")
-    val theStr = convert(allParams).sort(_ < _).mkString("") + secret
+    val theStr = convert(allParams).sortWith(_ < _).mkString("") + secret
 
     md.digest((theStr).getBytes).map(byteToHex(_)).mkString("")
   }
@@ -201,7 +201,7 @@ class FacebookClient[T](val apiKey: String, val secret: String, val session: Fac
     FacebookClient.buildParams(meth.name, allParams: _*)
   }
 
-  def getInfo(users: Collection[Long], fields: FacebookField*): T = {
+  def getInfo(users: Iterable[Long], fields: FacebookField*): T = {
     callMethod(GetInfo(users, fields: _*))
   }
 }
@@ -249,8 +249,8 @@ case class GetEvents(filters: GetEventsParam*) extends FacebookMethod("facebook.
 case class GetEventsMembers(eventId: Long) extends FacebookMethod("facebook.events.getMembers", EventId(eventId))
 case object GetAppUsers extends FacebookMethod("facebook.friends.getAppUsers")
 //case object GetRequests extends FacebookMethod("facebook.friends.getRequests") /*This method is not listed in the current facebook api. deprecated?*/
-case class AreFriends(friends1: Collection[Long], friends2: Collection[Long]) extends FacebookMethod("facebook.friends.areFriends", FacebookParam("uids1", friends1.mkString(",")), FacebookParam("uids2", friends2.mkString(",")))
-case class GetInfo(users: Collection[Long], fields: FacebookField*) extends FacebookMethod("facebook.users.getInfo", UserIds(users.toList: _*), FacebookFields(fields: _*))
+case class AreFriends(friends1: Iterable[Long], friends2: Iterable[Long]) extends FacebookMethod("facebook.friends.areFriends", FacebookParam("uids1", friends1.mkString(",")), FacebookParam("uids2", friends2.mkString(",")))
+case class GetInfo(users: Iterable[Long], fields: FacebookField*) extends FacebookMethod("facebook.users.getInfo", UserIds(users.toList: _*), FacebookFields(fields: _*))
 case object GetUser extends FacebookMethod("facebook.users.getLoggedInUser")
 case class GetPhotos(primaryFilter: GetPhotosParam, otherFilters: GetPhotosParam*) extends FacebookMethod("facebook.photos.get", (primaryFilter :: otherFilters.toList): _*)
 case class GetAlbums(primaryFilter: GetAlbumsParam, otherFilters: GetAlbumsParam*) extends FacebookMethod("facebook.photos.getAlbums", (primaryFilter :: otherFilters.toList): _*)

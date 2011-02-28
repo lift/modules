@@ -1,5 +1,5 @@
 /*
- * Copyright 2007-2010 WorldWide Conferencing, LLC
+ * Copyright 2007-2011 WorldWide Conferencing, LLC
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,32 +14,30 @@
  * limitations under the License.
  */
 
-package net.liftweb {
-package widgets {
-package calendars {
+package net.liftweb
+package widgets
+package calendars
 
-import _root_.net.liftweb.http.js._
-import _root_.net.liftweb.common._
-import _root_.net.liftweb.util._
-import _root_.net.liftweb.http.js.JE._
-import _root_.net.liftweb.http.js.JsCmds._
-import _root_.java.text.SimpleDateFormat
-import _root_.java.util.Calendar
-import _root_.java.util.Calendar._
+import java.text.SimpleDateFormat
+import java.util.Calendar
+import java.util.Calendar._
+
+import common._
+import util._
+import http.js._
+import JE._
+import JsCmds._
 
 
 object CalendarUtils {
   private lazy val timeFormatter = new SimpleDateFormat("h:m")
-
-  import JE._
-  import JsCmds._
 
   /**
    * Returns the JSON representation of the list of CalendrItem sorted by start time.
    */
   def toJSON(items: List[CalendarItem]): JsExp = {
 
-    JsObj(("items", JsArray(items.sort((e1, e2) => e1.start before(e2 start)) map(c => {
+    JsObj(("items", JsArray(items.sortWith((e1, e2) => e1.start before(e2 start)) map(c => {
 
       val (sh, sm) = (c.start.get(HOUR_OF_DAY), c.start.get(MINUTE));
       val (eh, em) = c.end map (c => (c.get(HOUR_OF_DAY), c.get(MINUTE))) openOr (48, 0)
@@ -80,8 +78,4 @@ object CalendarUtils {
                                              (c1.get(MONTH) == c2.get(MONTH)) &&
                                              (c1.get(YEAR) == c2.get(YEAR))
 
-}
-
-}
-}
 }

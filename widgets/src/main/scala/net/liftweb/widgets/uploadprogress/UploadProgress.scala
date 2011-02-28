@@ -18,14 +18,13 @@ package net.liftweb
 package widgets 
 package uploadprogress 
 
-import scala.xml.{NodeSeq,Text}
-import net.liftweb.http.{SessionVar,Req,GetRequest,PlainTextResponse,JsonResponse,
-                                LiftRules,OnDiskFileParamHolder,S,ResourceServer,LiftResponse}
-import net.liftweb.http.js.JsCmds._
-import net.liftweb.http.js.JE._
-import net.liftweb.common.{Box,Empty,Failure,Full}
-import net.liftweb.util.{Log}
-import net.liftweb.common.ParseDouble
+import xml.NodeSeq
+
+import common.{Box,Empty,Full}
+import http._
+import js.JsCmds._
+import js.JE._
+
 
 /**
  * A helper widget that makes it easy to do upload
@@ -84,7 +83,7 @@ object UploadProgress {
     Full(JsonResponse(
       JsObj(
         "state" -> state, 
-        "percentage" -> Str(Math.floor(((recived) / (size))*100).toString)
+        "percentage" -> Str(math.floor(((recived) / (size))*100).toString)
       )
     ))
   }

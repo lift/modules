@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2010 WorldWide Conferencing, LLC
+ * Copyright 2006-2011 WorldWide Conferencing, LLC
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,15 +14,17 @@
  * limitations under the License.
  */
 
-package net.liftweb {
-package machine {
+package net.liftweb
+package machine
 
-import _root_.net.liftweb.mapper._
-import _root_.net.liftweb.util.Helpers._
-import _root_.scala.collection.mutable.{Queue, HashMap}
-import _root_.net.liftweb.util._
-import _root_.net.liftweb.common._
-import _root_.net.liftweb.actor._
+import collection.mutable.{Queue, HashMap}
+
+import common._
+import actor._
+import util._
+import Helpers._
+import mapper._
+
 
 /**
  *  This trait manages state/workflow transition
@@ -319,7 +321,7 @@ trait MetaProtoStateMachine [MyType <: ProtoStateMachine[MyType, StateType],
   def timedEventPeriodicWait = 10000L
 
   private class TimedEventManager(val metaOwner: Meta) extends LiftActor with Loggable {
-    ActorPing.schedule(this, Ping, TimeSpan(timedEventInitialWait)) // give the system 2 minutes to "warm up" then start pinging
+    Schedule.schedule(this, Ping, TimeSpan(timedEventInitialWait)) // give the system 2 minutes to "warm up" then start pinging
 
     protected def messageHandler = 
       {
@@ -339,7 +341,7 @@ trait MetaProtoStateMachine [MyType <: ProtoStateMachine[MyType, StateType],
         } catch {
           case e => logger.error("State machine loop", e)
         }
-        ActorPing.schedule(this, Ping, TimeSpan(timedEventPeriodicWait))
+        Schedule.schedule(this, Ping, TimeSpan(timedEventPeriodicWait))
       }
     
     case object Ping
@@ -368,7 +370,4 @@ trait MetaProtoStateMachine [MyType <: ProtoStateMachine[MyType, StateType],
     val ret = new TimedEventHandler(getSingleton)
     ret
   }
-}
-
-}
 }

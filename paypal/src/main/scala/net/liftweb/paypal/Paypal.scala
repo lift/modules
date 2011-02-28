@@ -1,5 +1,5 @@
 /*
- * Copyright 2007-2010 WorldWide Conferencing, LLC
+ * Copyright 2007-2011 WorldWide Conferencing, LLC
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,21 +14,22 @@
  * limitations under the License.
  */
 
-package net.liftweb {
-package paypal {
+package net.liftweb
+package paypal
 
-import _root_.net.liftweb.util.Helpers
+import java.io._
+
+import collection.mutable.ListBuffer
+
+import org.apache.commons.httpclient.{HttpClient, NameValuePair}
+import org.apache.commons.httpclient.methods._
+
+import common._
+import actor._
+import util._
 import Helpers._
-import _root_.net.liftweb.util._
-import _root_.net.liftweb.common._
-import _root_.net.liftweb.actor._
-import _root_.net.liftweb.http._
-import _root_.org.apache.commons.httpclient._
-import _root_.org.apache.commons.httpclient.methods._
-import _root_.java.io._
-import _root_.scala.collection.mutable.ListBuffer
+import http._
 
-import _root_.scala.xml.{NodeSeq}
 
 /**
  * sealed abstract type PaypalMode so we can cast to the super
@@ -91,7 +92,7 @@ object PaypalTransactionStatus extends Enumeration {
 
   def find(name: String): Box[Value] = {
     val n = name.trim.toLowerCase
-    this.iterator.filter(v => v.toString.toLowerCase == n).toList.firstOption
+    this.values.filter(_.toString.toLowerCase == n).headOption
   }
 }
 
@@ -538,7 +539,7 @@ trait PaypalIPN extends BasePaypalTrait {
   protected object requestQueue extends LiftActor {
     protected def messageHandler =
       {
-        case PingMe => ActorPing.schedule(this, PingMe, 10 seconds)
+        case PingMe => Schedule.schedule(this, PingMe, 10 seconds)
 
         case IPNRequest(r, cnt, _) if cnt > MaxRetry => // discard the transaction
 
@@ -561,7 +562,4 @@ trait PaypalIPN extends BasePaypalTrait {
       }
   }
   requestQueue ! PingMe
-}
-
-}
 }

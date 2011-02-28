@@ -1,5 +1,5 @@
 /*
- * Copyright 2007-2010 WorldWide Conferencing, LLC
+ * Copyright 2007-2011 WorldWide Conferencing, LLC
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,27 +14,20 @@
  * limitations under the License.
  */
 
-package net.liftweb {
-package xmpp {
+package net.liftweb
+package xmpp
 
-import _root_.java.util.Collection
-import _root_.java.io.IOException
-import _root_.org.jivesoftware.smack.Chat
-import _root_.org.jivesoftware.smack.ChatManager
-import _root_.org.jivesoftware.smack.ConnectionConfiguration
-import _root_.org.jivesoftware.smack.MessageListener
-import _root_.org.jivesoftware.smack.ChatManagerListener
-import _root_.org.jivesoftware.smack.Roster
-import _root_.org.jivesoftware.smack.RosterEntry
-import _root_.org.jivesoftware.smack.RosterListener
-import _root_.org.jivesoftware.smack.XMPPConnection
-import _root_.org.jivesoftware.smack.XMPPException
-import _root_.org.jivesoftware.smack.packet.Message
-import _root_.org.jivesoftware.smack.packet.Presence
-import _root_.org.jivesoftware.smack.util.StringUtils
-import _root_.net.liftweb.actor._
-import _root_.scala.collection.mutable.HashMap
-import _root_.scala.collection.mutable.Map
+import java.util.Collection
+
+import collection.mutable.HashMap
+import collection.mutable.Map
+
+import org.jivesoftware.smack._
+import packet.{Message, Presence}
+import util.StringUtils
+
+import actor._
+
 
 /** These messages are sent to the XMPPDispatcher Actor. */
 // Send the Presence to the XMPP server
@@ -112,10 +105,10 @@ class XMPPDispatcher(val connf: () => ConnectionConfiguration, val login: XMPPCo
       /* These are all messages we process from the client Actors. */
       case AddListener(actor: LiftActor) => 
         actor ! NewRoster(roster)
-	clients ::= actor
+        clients ::= actor
 
       case RemoveListener(actor: LiftActor) => 
-	clients -= actor
+        clients filterNot(_ == actor)
 
       case SetPresence(presence) => conn.sendPacket(presence)
     
@@ -269,7 +262,4 @@ object ConsoleChatHelper {
     ex ! Start
     ex
   }
-}
-
-}
 }

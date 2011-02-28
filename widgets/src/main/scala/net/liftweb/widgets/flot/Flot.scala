@@ -1,5 +1,5 @@
 /*
- * Copyright 2007-2010 WorldWide Conferencing, LLC
+ * Copyright 2007-2011 WorldWide Conferencing, LLC
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,32 +14,29 @@
  * limitations under the License.
  */
 
-package net.liftweb {
-package widgets {
-package flot {
+package net.liftweb
+package widgets
+package flot
 
-import scala.xml.{NodeSeq, Node, PCData, Text, Unparsed}
-import _root_.net.liftweb.http.{LiftRules}
-import _root_.net.liftweb.http.js._
-import JsCmds._
-import JE._
-// jQuery specific
-import _root_.net.liftweb.http.js.jquery._
+import xml.{NodeSeq, Unparsed}
+
+import common._
+import util._
+import Helpers._
+import http.LiftRules
+import http.js._
+import jquery._
 import JsCmds._
 import JE._
 import JqJE._
-import _root_.net.liftweb.util._
-import _root_.net.liftweb.common._
-import Helpers._
+
 
 /**
  * renders a flot graph using http://code.google.com/p/flot/ jQuery widget
  * <br />
  * See the sites/flotDemo webapp for examples.
  */
-
-object Flot
-{
+object Flot {
   /**
    * register the resources with lift (typically in boot)
    */
@@ -417,8 +414,4 @@ object Flot
    "'#" + id + "'"
    }
    */
-}
-
-}
-}
 }

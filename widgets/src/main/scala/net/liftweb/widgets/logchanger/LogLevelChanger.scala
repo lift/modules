@@ -1,5 +1,5 @@
 /*
- * Copyright 2007-2010 WorldWide Conferencing, LLC
+ * Copyright 2007-2011 WorldWide Conferencing, LLC
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,12 +14,15 @@
  * limitations under the License.
  */
 
-package net.liftweb {
-package widgets {
-package logchanger {
+package net.liftweb
+package widgets
+package logchanger
 
-import scala.xml._
-import scala.xml.transform._
+import xml._
+import xml.transform._
+
+import org.slf4j.LoggerFactory
+
 import common._
 import http._
 import js._
@@ -28,7 +31,6 @@ import util.Helpers._
 import sitemap._
 import Loc._
 
-import org.slf4j.{Logger => SLF4JLogger, LoggerFactory}
 
 /**
  * Abstraction of a logging backend where the loglevel can be set
@@ -226,7 +228,7 @@ trait LogLevelChanger {
       
   def changeLogLevel: NodeSeq = {
     def doRows(in: NodeSeq): NodeSeq = {
-      val ls = loggers.toList sort {getName(_) < getName(_)}
+      val ls = loggers.toList sortWith {getName(_) < getName(_)}
       ls flatMap {l =>
         def loggerChoices(logger: LoggerType): NodeSeq = {
           val levelTexts:List[(String, Boolean, LoggerType => Unit)] = List(
@@ -257,5 +259,3 @@ trait LogLevelChanger {
     bind("logLevels", xhtml, "rows" -> doRows _)
   }
 }
-
-}}}
