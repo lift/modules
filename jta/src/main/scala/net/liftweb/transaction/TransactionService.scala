@@ -1,5 +1,5 @@
 /*
- * Copyright 2009-2010 WorldWide Conferencing, LLC
+ * Copyright 2009-2011 WorldWide Conferencing, LLC
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,30 +14,14 @@
  * limitations under the License.
  */
 
-package net.liftweb {
-package transaction {
+package net.liftweb
+package transaction
 
-import _root_.javax.naming.{NamingException, Context, InitialContext}
-import _root_.javax.transaction.{
-  Transaction,
-  UserTransaction,
-  TransactionManager,
-  Status,
-  Synchronization,
-  RollbackException,
-  SystemException,
-  TransactionRequiredException
-}
-import _root_.javax.persistence.{
-  Persistence,
-  EntityManager,
-  EntityManagerFactory,
-  NonUniqueResultException,
-  NoResultException
-}
+import javax.transaction.{Transaction, TransactionManager, Status, SystemException, TransactionRequiredException}
+import javax.persistence.{Persistence, EntityManagerFactory, NonUniqueResultException, NoResultException}
 
-import net.liftweb.common.{Loggable, Logger}
-import org.scala_libs.jpa.{ScalaEMFactory, ScalaEntityManager}
+import common.Logger
+
 
 /**
  * JTA Transaction service.
@@ -56,7 +40,7 @@ trait TransactionService {
  */
 trait EntityManagerService {
   // TODO: make configurable?
-  val JPA_PERSISTENT_UNIT = "LiftPersistenceUnit"
+  lazy val JPA_PERSISTENT_UNIT = "LiftPersistenceUnit"
   lazy val entityManagerFactory = Persistence.createEntityManagerFactory(JPA_PERSISTENT_UNIT)
 }
 
@@ -252,7 +236,4 @@ trait TransactionProtocol {
     if (suspendedTx != null && suspendedTx.get() != null) Some(suspendedTx.get.asInstanceOf[Transaction])
     else None
   }
-}
-
-}
 }

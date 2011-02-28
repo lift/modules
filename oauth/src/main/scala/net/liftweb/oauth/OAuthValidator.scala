@@ -1,5 +1,5 @@
 /*
- * Copyright 2010 WorldWide Conferencing, LLC
+ * Copyright 2010-2011 WorldWide Conferencing, LLC
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,18 +14,18 @@
  * limitations under the License.
  */
 
-package net.liftweb {
-package oauth {
+package net.liftweb
+package oauth
 
-import net.liftweb.common.Full
-import net.liftweb.util._
-import net.liftweb.common._
+import common._
+import util._
 import Helpers._
 
+
 trait OAuthValidator {
-  val MIN_VERSION = 1.0
-  val MAX_VERSION = 1.0
-  val MAX_TIMESTAMP_AGE_MSEC = 5 * 60 * 1000
+  lazy val MIN_VERSION = 1.0
+  lazy val MAX_VERSION = 1.0
+  lazy val MAX_TIMESTAMP_AGE_MSEC = 5 * 60 * 1000
 
   val SINGLE_PARAMETERS = Set(OAuthUtil.OAUTH_CONSUMER_KEY, OAuthUtil.OAUTH_TOKEN, OAuthUtil.OAUTH_TOKEN_SECRET,
                               OAuthUtil.OAUTH_CALLBACK, OAuthUtil.OAUTH_SIGNATURE_METHOD, OAuthUtil.OAUTH_SIGNATURE,
@@ -118,7 +118,4 @@ trait OAuthValidator {
     res <- validator.validate(msg)
   } yield msg
 
-}
-
-}
 }

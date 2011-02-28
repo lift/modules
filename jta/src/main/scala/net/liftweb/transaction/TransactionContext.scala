@@ -1,5 +1,5 @@
 /*
- * Copyright 2009-2010 WorldWide Conferencing, LLC
+ * Copyright 2009-2011 WorldWide Conferencing, LLC
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,13 +14,17 @@
  * limitations under the License.
  */
 
-package net.liftweb {
-package transaction {
+package net.liftweb
+package transaction
 
-import _root_.javax.persistence.{EntityManager, EntityManagerFactory}
-import _root_.javax.transaction.{Transaction, Status, TransactionManager}
-import _root_.net.liftweb.common.Loggable
-import _root_.org.scala_libs.jpa.{ScalaEntityManager, ScalaEMFactory}
+import javax.persistence.EntityManager
+import javax.transaction.{Transaction, Status, TransactionManager}
+
+import org.scala_libs.jpa.{ScalaEntityManager, ScalaEMFactory}
+
+import common.Loggable
+
+
 /**
  * Base monad for the transaction monad implementations.
  *
@@ -227,7 +231,4 @@ class TransactionContext(private implicit val transactionService: TransactionSer
   val factory = this
   def openEM: javax.persistence.EntityManager = em
   def closeEM(e: javax.persistence.EntityManager) = closeEntityManager
-}
-
-}
 }

@@ -422,7 +422,7 @@ private[paypal] class PaypalIPNPostbackReponse(val response: List[String]) exten
 }
 
 object SimplePaypal extends PaypalIPN with PaypalPDT with Loggable {
-  val paypalAuthToken = "123"
+  lazy val paypalAuthToken = "123"
   def actions = {
     case (status, info, resp) =>
       logger.info("Got a verified PayPal IPN: "+status)
@@ -534,7 +534,7 @@ trait PaypalIPN extends BasePaypalTrait {
   /**
    * How many times do we try to verify the request
    */
-  val MaxRetry = 6
+  lazy val MaxRetry = 6
 
   protected object requestQueue extends LiftActor {
     protected def messageHandler =
@@ -556,7 +556,7 @@ trait PaypalIPN extends BasePaypalTrait {
               }
             } match {
               case Full(Full(true)) => // it succeeded
-		case _ => // retry
+              case _ => // retry
                   this ! IPNRequest(r, cnt + 1, millis + (1000 * 8 << (cnt + 2)))
             }
       }

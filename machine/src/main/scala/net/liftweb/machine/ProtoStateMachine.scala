@@ -29,9 +29,9 @@ import mapper._
 /**
  *  This trait manages state/workflow transition
  */
-trait ProtoStateMachine[MyType <: ProtoStateMachine[MyType, StateType],
-			StateType <: Enumeration] extends KeyedMapper[Long, MyType]
-{
+trait ProtoStateMachine[MyType <: ProtoStateMachine[MyType, StateType], StateType <: Enumeration]
+  extends KeyedMapper[Long, MyType] {
+
   self: MyType =>
 
   /**
@@ -346,7 +346,7 @@ trait MetaProtoStateMachine [MyType <: ProtoStateMachine[MyType, StateType],
     
     case object Ping
   }
-			       
+
     private class TimedEventHandler(val metaOwner: Meta) extends LiftActor with Loggable {
       protected def messageHandler =
         {

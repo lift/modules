@@ -1,5 +1,5 @@
 /*
- * Copyright 2009-2010 WorldWide Conferencing, LLC
+ * Copyright 2009-2011 WorldWide Conferencing, LLC
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,38 +14,14 @@
  * limitations under the License.
  */
 
-package net.liftweb {
-package transaction {
+package net.liftweb
+package transaction
 
 import net.liftweb.common.Loggable
 
-import _root_.javax.naming.{NamingException, Context, InitialContext}
-import _root_.javax.transaction.{
-  Transaction,
-  UserTransaction,
-  TransactionManager,
-  Status,
-  Synchronization,
-  RollbackException,
-  SystemException,
-  TransactionRequiredException
-}
-import _root_.javax.persistence.{
-  EntityManager,
-  EntityManagerFactory,
-  NonUniqueResultException,
-  NoResultException
-}
+import javax.transaction.{  TransactionManager,  Status,  Synchronization,  SystemException}
+import javax.persistence.EntityManager
 
-import com.atomikos.icatch.jta.{
-  J2eeTransactionManager,
-  J2eeUserTransaction
-}
-import com.atomikos.icatch.config.{
-  TSInitInfo,
-  UserTransactionService,
-  UserTransactionServiceImp
-}
 
 /**
  * EntityManager JTA synchronization class.
@@ -85,7 +61,4 @@ class EntityManagerSynchronization(
         TransactionContext.closeEntityManager // destroy EntityManager on rollback
      }
   }
-}
-
-}
 }
