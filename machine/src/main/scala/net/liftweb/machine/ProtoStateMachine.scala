@@ -121,7 +121,7 @@ trait ProtoStateMachine[MyType <: ProtoStateMachine[MyType, StateType], StateTyp
       toProcess.foreach {
         event =>
         try {
-          getSingleton.processEvent(this, event)
+          getSingleton.metaProcessEvent(this, event)
         } finally {
           synchronized {_isProcessing = false}
           processIt
@@ -198,7 +198,7 @@ trait MetaProtoStateMachine [MyType <: ProtoStateMachine[MyType, StateType],
   /**
     *  Process an event for an instance
     */
-  protected def processEvent(who: MyType, what: Meta#Event) {
+  private[machine] def metaProcessEvent(who: MyType, what: Meta#Event) {
     val transitions = stateInfo(who.state) // get the transitions
     val which = first(transitions.toList) {t => if (t.on.isDefinedAt(what) && t.testGuard(who, who.state, t.to, what)) Full(t) else Empty}
 
