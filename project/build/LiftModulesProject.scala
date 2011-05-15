@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 
+import com.weiglewilczek.bnd4sbt.BNDPlugin
 import net.liftweb.sbt._
 import sbt._
 
@@ -69,9 +70,16 @@ class LiftModulesProject(info: ProjectInfo) extends ParentProject(info) with Lif
 
   // Default base
   // ------------
-  class ModulesProject(info: ProjectInfo, libs: ModuleID*) extends DefaultProject(info) with LiftDefaultProject {
+  class ModulesProject(info: ProjectInfo, libs: ModuleID*) extends DefaultProject(info) with BNDPlugin with LiftDefaultProject {
 
     override def libraryDependencies = super.libraryDependencies ++ libs
+
+    // OSGi Attributes
+    override def bndExportPackage = Seq("net.liftweb.*;version=\"%s\"".format(projectVersion.value))
+    override def bndImportPackage = "net.liftweb.*;version=\"%s\"".format(projectVersion.value) :: super.bndImportPackage.toList
+
+    // BNDPlugin should include mainResourcesOutputPath too, to include the generated resources
+    override def bndIncludeResource = super.bndIncludeResource ++ Seq(mainResourcesOutputPath.absolutePath)
 
     // System properties necessary during test
     override def testAction =
