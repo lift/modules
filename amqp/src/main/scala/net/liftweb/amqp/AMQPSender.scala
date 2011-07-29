@@ -47,7 +47,7 @@ abstract class AMQPSender[T](cf: ConnectionFactory, host: String, port: Int, exc
   }
 
   protected def messageHandler = {
-    case AMQPMessage(msg: T) => send(msg)
+    case AMQPMessage(msg: T) => sendMsg(msg)
   }
 }
 
