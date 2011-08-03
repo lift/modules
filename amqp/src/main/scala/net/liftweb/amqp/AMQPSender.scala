@@ -47,7 +47,7 @@ abstract class AMQPSender[T](cf: ConnectionFactory, host: String, port: Int, exc
   }
 
   protected def messageHandler = {
-    case AMQPMessage(msg: T) => send(msg)
+    case AMQPMessage(msg: T) => sendMsg(msg)
   }
 }
 
@@ -93,17 +93,17 @@ class ExampleStringAMQPSender {
  * efficient with resources.
  */
 object ExampleDirectAMQPSender {
-  def send[T](msg: T) {
+  def sendMsg[T](msg: T) {
     val params = new ConnectionParameters
     // All of the params, exchanges, and queues are all just example data.
     params.setUsername("guest")
     params.setPassword("guest")
     params.setVirtualHost("/")
     params.setRequestedHeartbeat(0)
-    send(msg, params, "localhost", 5672)
+    sendMsg(msg, params, "localhost", 5672)
   }
 
-  def send[T](msg: T, params: ConnectionParameters, host: String, port: Int) {
+  def sendMsg[T](msg: T, params: ConnectionParameters, host: String, port: Int) {
     val factory = new ConnectionFactory(params)
     val conn = factory.newConnection(host, port)
     val channel = conn.createChannel()
@@ -130,7 +130,7 @@ object AMQPExampleFunPack {
   def actorExample {
     val recv = new ExampleStringAMQPListener()
     // You probably know what message you are going to see. 'hello!'
-    val sender = ExampleDirectAMQPSender.send("hello!")
+    val sender = ExampleDirectAMQPSender.sendMsg("hello!")
     sender
   }
 }
