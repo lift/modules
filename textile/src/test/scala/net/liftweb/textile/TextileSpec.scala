@@ -79,6 +79,18 @@ object TextileSpec extends Specification {
       toHtml("**Hello World**") must ==/(<p><b>Hello World</b></p>)
     }
 
+    "End line elements with punctuation" in {
+      toHtml("And then? She *fell*!") must ==/(<p>And then? She <strong>fell</strong>!</p>)
+    }
+
+    "Start line elements with punctuation" in {
+      toHtml("see:_Hello word_") must ==/(<p>see:<em>Hello word</em></p>)
+    }
+
+    "**Bold * Not Strong**" in {
+      toHtml("**Bold * Not Strong**") must ==/(<p><b>Bold * Not Strong</b></p>)
+    }
+
     "Make other things bold" in {
       toHtml("Dude this is **Hello World** kind of stuff") must ==/(<p>Dude this is <b>Hello World</b> kind of stuff</p>)
     }
@@ -92,17 +104,17 @@ object TextileSpec extends Specification {
     }
 
     "Observe -- very nice!" in {
-      toHtml("Observe -- very nice!") must ==/(<p>Observe &#8212; very nice!</p>)
+      toHtml("Observe -- very nice!") must ==/(<p>Observe \u2014 very nice!</p>)
     }
 
     "Observe - tiny and brief." in {
-      toHtml("Observe - tiny and brief.") must ==/(<p>Observe &#8211; tiny and brief.</p>)
+      toHtml("Observe - tiny and brief.") must ==/(<p>Observe \u2013 tiny and brief.</p>)
     }
 
     "\"Observe!\"" in {
       val ret = toHtml("\"Observe!\"")
 
-      ret must ==/(<p>&#8220;Observe!&#8221;</p>)
+      ret must ==/(<p>\u201cObserve!\u201d</p>)
     }
 
     "A simple example." in {
@@ -136,6 +148,10 @@ A regular example.
 
     "a link http://yahoo.com inside" in {
       toHtml("a link http://yahoo.com inside") must ==/(<p>a link <a href="http://yahoo.com">http://yahoo.com</a> inside</p>)
+    }
+
+    "a quoted link" in {
+      toHtml("""I searched "Google":http://google.com.""") must ==/(<p>I searched <a href="http://google.com.">Google</a></p>)
     }
 
     "deal with a very long line of text" in {

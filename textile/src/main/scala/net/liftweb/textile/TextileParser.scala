@@ -18,7 +18,7 @@ package net.liftweb {
 package textile {
 
 import _root_.scala.util.parsing.combinator.{Parsers, ImplicitConversions}
-import _root_.scala.xml.{Elem => XmlElem, MetaData, NodeSeq, Null, Text, TopScope, UnprefixedAttribute, Group, Node}
+import _root_.scala.xml.{Elem => XmlElem, Atom, MetaData, NodeSeq, Null, Text, TopScope, UnprefixedAttribute, Group, Node}
 import _root_.scala.collection.mutable.HashMap
 
 /**
@@ -230,14 +230,6 @@ object TextileParser {
 
     def discard[T](p: Parser[T]): Parser[Unit] = p ^^ {x => ()}
 
-    def peek[T](p: Parser[T]): Parser[T] = Parser { in =>
-      p(in) match {
-        case s @ Success(v, _) => Success(v, in)
-        case e @ Error(msg, _) => Error(msg, in)
-        case f @ Failure(msg, _) => Failure(msg, in)
-      }
-    }
-
     lazy val document : Parser[Lst] = rep(paragraph) ^^ Lst
     // final val  Ch = '\032'
     private def chrExcept(cs: Char*): Parser[Char] = elem("", {c => ('\032' :: cs.toList) forall (_ != c)}) //{x =>  !cs.contains(x)})
@@ -268,41 +260,28 @@ object TextileParser {
     /**
      * Line elements make up paragraphs and block elements
      */
-    lazy val lineElem : Parser[Textile] = {
+    def lineElemParser(st: => Parser[Textile] = strong, em: => Parser[Textile] = emph) : Parser[Textile] = {
       not(blankLine) ~> (endOfLine | image | footnote_def |
                          anchor | dimension | elipsis  |
                          copyright | trademark | registered |
                          emDash |
-                         enDash | italic | emph | bold  |
+                         enDash | italic | em | bold  |
                          cite |  span | code | delete | insert |
-                         sup | sub | strong | html |
+                         sup | sub | st | html |
                          single_quote | quote | acronym | charBlock)
     }
+    lazy val lineElem : Parser[Textile] = lineElemParser()
 
     /**
      * If we've got an italic (__text__), the parser doesn't do well with a single underscore, so
-     * we exclude looking for _emph_
+     * we exclude looking for _emph_ followed by another _
      */
-    lazy val lineElem_notEmph : Parser[Textile] = {
-      not(blankLine) ~> (endOfLine | image | footnote_def | anchor |
-                         dimension | elipsis |
-                         copyright | trademark | registered | emDash | enDash | italic |
-                         bold  |
-                         cite |  span| code | delete | insert| sup | sub | strong  |
-                         html| single_quote | quote | acronym | charBlock)
-    }
+    lazy val lineElem_inItalic : Parser[Textile] = lineElemParser(em = emphNotItalic)
 
     /**
-     * Don't look for *strong* if we're currently in a **bold** element
+     * Don't look for *strong* followed by * if we're currently in a **bold** element
      */
-    lazy val lineElem_notStrong : Parser[Textile] = {
-      not(blankLine) ~> (endOfLine | image | footnote_def | anchor |
-                         dimension | elipsis |
-                         copyright | trademark | registered | emDash | enDash | italic |
-                         emph |
-                         cite |  span | code | delete | insert  | sup |
-                         sub | bold  | html| single_quote | quote | acronym  | charBlock)
-    }
+    lazy val lineElem_inBold : Parser[Textile] = lineElemParser(st = strongNotBold)
 
 
     /**
@@ -575,18 +554,23 @@ object TextileParser {
       {case fbl ~ abl => Bullet(fbl :: abl, numbered)}
     }
 
-    def formattedLineElem[Q <% Parser[Any]](m: Q):
-    Parser[List[Textile] ~ List[Textile] ~ List[Attribute] ~ List[Textile]] =
-    formattedLineElem(m, rep(attribute))
+    def isStartPunct(c: Char) = str2chars(".,\"'?!;:").contains(c)
+    lazy val startPunct: Parser[Elem] = elem("startPunct", isStartPunct)
 
-    lazy val begOrSpace: Parser[Int] = rep1(' ') ^^ {case lst => lst.length} | beginl ^^^ 0
-    lazy val spaceOrEnd: Parser[Int] = endOfLine ^^^ 0 | rep1(' ') ^^ {case lst => lst.length}
+    val punctRegex = java.util.regex.Pattern.compile("""\p{Punct}""")
+    def isPunct(c: Char) = punctRegex.matcher(c.toString).matches
+    lazy val punct: Parser[Elem] = elem("endPunct", isPunct)
 
-    def formattedLineElem[Q <% Parser[Any]](m: Q, p: Parser[List[Attribute]]):
+    lazy val begPunctOrSpace: Parser[String] = beginl ^^^ "" |
+      (startPunct | ' ') ^^ { case lst => lst.toString }
+    lazy val spacePunctOrEnd: Parser[Int] = endOfLine ^^^ 0 |
+      (punct | ' ') ^^ { case lst => 1 }
+
+    def formattedLineElem[Q <% Parser[Any]](m: Q, p: Parser[List[Attribute]] = rep(attribute), restrictSuffix: Parser[Elem] = failure("?"), le: Parser[Textile] = lineElem):
     Parser[List[Textile] ~ List[Textile] ~ List[Attribute] ~ List[Textile]] =
-    begOrSpace ~ (m ~> p) ~ (rep1(not(endOfLine | (m ~ (endOfLine | rep1(' ')))) ~> lineElem) <~ m) ~ peek(spaceOrEnd) ^^
-    {case bg ~ attrs ~ ln ~ end =>
-        val t1: List[Textile] ~ List[Textile] = new ~(List(CharBlock(" " * bg)),
+    begPunctOrSpace ~ (m ~> p) ~ (rep1(not(endOfLine | (m ~ (spacePunctOrEnd))) ~> le) <~ m) <~ not(restrictSuffix) ^^
+    {case bg ~ attrs ~ ln =>
+        val t1: List[Textile] ~ List[Textile] = new ~(List(CharBlock(bg)),
                                                       reduceCharBlocks(ln))
         val t2 = new ~(t1, attrs)
         new ~(t2, Nil)
@@ -596,9 +580,11 @@ object TextileParser {
 
     // TODO: generalize formattedLineElem some more
     lazy val bold: Parser[Textile] =
-    formattedLineElem(accept("**")) ^^ flatten4(Special * "b")
+    formattedLineElem(accept("**"), le = lineElem_inBold) ^^ flatten4(Special * "b")
 
     lazy val strong: Parser[Textile] = formattedLineElem('*') ^^ flatten4(Strong)
+
+    lazy val strongNotBold: Parser[Textile] = formattedLineElem('*', restrictSuffix = '*') ^^ flatten4(Strong)
 
     lazy val cite: Parser[Textile] = formattedLineElem(accept("??")) ^^ flatten4(Cite)
 
@@ -652,11 +638,13 @@ object TextileParser {
 
     lazy val sub : Parser[Textile] =  formattedLineElem('~') ^^ flatten4(Special * "sub")
 
-    lazy val italic : Parser[Textile] = formattedLineElem(accept("__")) ^^ flatten4(Special * "i")
+    lazy val italic : Parser[Textile] = formattedLineElem(accept("__"), le = lineElem_inItalic) ^^ flatten4(Special * "i")
 
     lazy val emph : Parser[Textile] = formattedLineElem('_') ^^ flatten4(Emph)
 
-    lazy val quote : Parser[Textile] = formattedLineElem('"', success(Nil)) ^^ flatten4((f, x, y, lst) => Quoted(f, x, lst))
+    lazy val emphNotItalic : Parser[Textile] = formattedLineElem('_', restrictSuffix = '_') ^^ flatten4(Emph)
+
+    lazy val quote : Parser[Textile] = formattedLineElem('"', success(Nil), ':') ^^ flatten4((f, x, y, lst) => Quoted(f, x, lst))
 
     def reduceCharBlocks(in : List[Textile]) : List[Textile] =
     {
@@ -870,7 +858,21 @@ object TextileParser {
 
   // drop the last EOL to prevent needless <br />
   // TODO: find a better solution.. it's not quite clear to me where newlines are meaningful
-  private def flattenAndDropLastEOL(elems : List[Textile]) = ((elems match {case Nil => Nil case x => (x.last match { case EOL => elems.init case _ => elems})})).flatMap{e => e.toHtml.toList}
+  private def flattenAndDropLastEOL(elems : List[Textile]) = normalize(
+    (elems match {
+      case _ :: _ if elems.last == EOL => elems.init
+      case _ => elems
+    }).flatMap(_.toHtml)
+  ).toList
+
+  // reduce adjacent text elements into one
+  def normalize(nodes: Seq[Node]): Seq[Node] = nodes match {
+    case s @ Seq() => s
+    case Seq(head: Atom[String], tail @ _*) =>
+      val (text, rest) = tail span { _.isInstanceOf[Atom[String]] }
+      Text(text.foldLeft(head.text) { _ + _.text}) +: normalize(rest)
+    case Seq(head, tail @ _*) => head +: tail
+  }
 
   case class Paragraph(elems : List[Textile], attrs: List[Attribute]) extends ATextile(elems, attrs) {
     override def toHtml : NodeSeq = {
