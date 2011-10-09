@@ -47,6 +47,7 @@ object Flot {
     ResourceServer.allow({
         case "flot" :: "jquery.flot.css" :: Nil => true
         case "flot" :: "jquery.flot.js" :: Nil => true
+        case "flot" :: "jquery.flot.navigate.js" :: Nil => true
         case "flot" :: "excanvas.js" :: Nil => true
       })
   }
@@ -65,28 +66,19 @@ object Flot {
              options: FlotOptions,
              script: JsCmd,
              caps: FlotCapability*
-  ): NodeSeq =
-  {
-    val ieExcanvasPackJs = Unparsed("<!--[if IE]><script language=\"javascript\" type=\"text/javascript\" src=\"" +
-                                    urlEncode(net.liftweb.http.S.contextPath) + "/" +
-                                    urlEncode(LiftRules.resourceServerPath) + "/flot/excanvas.js\"></script><![endif]-->")
-
-    // 27/06/2009 add style tag )See http://groups.google.com/group/liftweb/browse_thread/thread/5e0335583e2a248b?hl=en&pli=1)
-
-
+  ): NodeSeq = {
     renderHead() ++ Script(_renderJs(idPlaceholder, datas, options, script, caps :_*))
   }
 
-    def renderHead(): NodeSeq = {
+  def renderHead(): NodeSeq = {
     val ieExcanvasPackJs = Unparsed("<!--[if IE]><script language=\"javascript\" type=\"text/javascript\" src=\"" +
                                     urlEncode(net.liftweb.http.S.contextPath) + "/" +
                                     urlEncode(LiftRules.resourceServerPath) + "/flot/excanvas.js\"></script><![endif]-->")
 
-    // 27/06/2009 add style tag )See http://groups.google.com/group/liftweb/browse_thread/thread/5e0335583e2a248b?hl=en&pli=1)
-
-
     <head>
-      <script type="text/javascript" src={"/" + LiftRules.resourceServerPath + "/flot/jquery.flot.js"}/>
+      {List("flot.js", "flot.navigate.js") map(name =>
+      <script type="text/javascript" src={"/" + LiftRules.resourceServerPath + "/flot/jquery." + name}/>
+      )}
     {ieExcanvasPackJs}
       <link rel="stylesheet" href={"/" + LiftRules.resourceServerPath + "/flot/jquery.flot.css"} type="text/css"/>
     </head>
@@ -98,10 +90,6 @@ object Flot {
            def toJsCmd = "addClass(\"flot_lww\")"
          }
   }
-
-  /*
-   *
-   */
 
   def renderCapability (fRender: FlotCapability => JsCmd, caps: FlotCapability *): JsCmd =
   caps.foldLeft(Noop)((js, cap) => js & fRender(cap))
@@ -175,21 +163,6 @@ object Flot {
 
   }
 
-  /*
-   private def renderJqueryScript (jqueryScript: Seq[Node]) : JsCmd = {
-   jqueryScript.foldLeft ("") ( (sz,node) => {
-   sz + (node match {
-   case net.liftweb.util.PCData (_s) => _s
-   case _ => node.toString
-   })
-   })
-   }
-
-   //
-
-   val initFlot = "jQuery(function () {"
-   val endFlot = "});"
-   */
   /**
    * render a data value:<br/>
    * [2, 10]
@@ -285,133 +258,4 @@ object Flot {
       case (d, idx) => renderOneSerie(d, idPlaceholder, idx + 1)
     } :_*)
 
-
-  //
-
-
-  //
-  // min: 0, max: 10, tickDecimals: 0
-  // mode: "time",
-  // minTickSize: [1, "month"],    // TODO
-  //
-  /*
-   def renderAxisOptions (options: FlotAxisOptions): JsObj = {
-   val info: List[Box[(String, JsExp)]] =
-   List(options.min.map(v => ("min", v)),
-   options.max.map(v => ("max", v)),
-   options.tickDecimals.map(v => ("tickDecimals", v)),
-   options.ticks match {
-   case Nil => Empty
-   case x :: Nil => Full(("ticks", x))
-   case xs => Full(("ticks", JsArray(xs.map(d => Num(d)) :_*)))
-   },
-   options.mode.map(v => ("mode", v))
-   )
-
-   JsObj(info.flatten(_.toList) :_*)
-   }*/
-
-  //
-  //    xaxis: { tickDecimals: 0 },
-  //    yaxis: { min: 0, max: 10 },
-  //
-  /*
-   def renderAxis (axis : String, options : FlotAxisOptions) : String = {
-   axis + "axis: {" + renderAxisOptions (options) + "}"
-   }
-   */
-
-  //
-  //
-  //
-
-
-  //
-  //
-  //
-
-
-
-
-  //
-  // {
-  //    lines: { show: true},
-  //    points: { show: true}
-  //    xaxis: { tickDecimals: 0 },
-  //    yaxis: { min: 0, max: 10 },
-  //    selection: { mode: "x" }
-  //    legend: { noColumns: 2 },
-  // }
-  //
-  /*
-   def renderOptions(options: FlotOptions): JsExp = {
-   var first = true
-
-   def endOfLine () = {
-   val ret = if (! first) ",\n      " else "      "
-   first = false
-   ret
-   }
-
-   val set_lines = options.lines match {
-   case None => ""
-   case Some (_lines) => {first=false; "lines: {" + renderLines (_lines) + "}"}
-   }
-
-   val set_points = options.points match {
-   case None => ""
-   case Some (_points) => {endOfLine + "points: {" + renderPoints (_points) + "}"}
-   }
-
-   val set_xaxis = options.xaxis match {
-   case None => ""
-   case Some (options) => {endOfLine + renderAxis ("x", options)}
-   }
-
-   val set_yaxis = options.yaxis match {
-   case None => ""
-   case Some (options) => {endOfLine + renderAxis ("y", options)}
-   }
-
-   val set_selection = options.modeSelection match {
-   case None => ""
-   case Some (mode) => {endOfLine + "selection: { mode: '" + mode + "'}"}
-   }
-
-   val set_legend = options.legend match {
-   case None => ""
-   case Some (_legend) => {endOfLine + "legend: {" + renderLegend (_legend) +  "}"}
-   }
-
-   val set_shadowSize = options.shadowSize match {
-   case None => ""
-   case Some (_shadowSize) => {endOfLine + "shadowSize: " + _shadowSize}
-   }
-
-   val set_grid = options.grid match {
-   case None => ""
-   case Some (_grid) => {endOfLine + "grid: {" + renderGrid (_grid) + "}"}
-   }
-
-   if (! first)
-   {
-   "{\n" +
-   set_lines +
-   set_points  +
-   set_xaxis +
-   set_yaxis +
-   set_selection +
-   set_legend +
-   set_shadowSize +
-   set_grid +
-   "  }"
-   }
-   else
-   "{}"
-   }
-
-   def renderId (id : String) : String = {
-   "'#" + id + "'"
-   }
-   */
 }

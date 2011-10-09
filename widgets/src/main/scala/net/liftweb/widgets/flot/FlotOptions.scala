@@ -37,6 +37,8 @@ trait FlotAxisOptions extends BaseFlotOptions {
   def max: Box[Double] = None
   def mode: Box[String] = Empty
   def ticks: List[Double] = Nil //  null or number or ticks array or (fn: range -> ticks array)
+  def zoomRange: Box[Pair[Double, Double]] = Empty
+  def panRange:  Box[Pair[Double, Double]] = Empty
 
    protected def buildOptions =
    List(c("min", min),
@@ -47,7 +49,10 @@ trait FlotAxisOptions extends BaseFlotOptions {
         case Nil => Empty
         case x :: Nil => Full(("ticks", x))
         case xs => Full(("ticks", JsArray(xs.map(d => Num(d)) :_*)))
-      })
+        },
+        zoomRange.map(r => ("zoomRange", JsArray(r._1, r._2))),
+        panRange .map(r => ("panRange" , JsArray(r._1, r._2)))
+   )
   /* TODO
    autoscaleMargin: null or number
    labelWidth: null or number
@@ -160,6 +165,23 @@ trait FlotGridOptions extends BaseFlotOptions {
    */
 }
 
+trait ZoomOptions extends BaseFlotOptions {
+  def interactive: Box[Boolean] = Empty
+  def amount:      Box[Double] = Empty
+
+  def buildOptions =
+  List(
+    interactive.map(v => ("interactive", v)),
+    amount.map(v => ("amount", v)))
+}
+
+trait PanOptions extends BaseFlotOptions {
+  def interactive: Box[Boolean] = Empty
+
+  def buildOptions =
+  List(interactive.map(v => ("interactive", v)))
+}
+
 /**
  * Options
  */
@@ -174,6 +196,8 @@ trait FlotOptions extends BaseFlotOptions {
   @deprecated def shadowSize: Box[Int] = Empty
   def grid: Box[FlotGridOptions] = Empty
   def series: Box[Map[String, JsExp]] = Empty
+  def zoomOptions: Box[ZoomOptions] = Empty
+  def panOptions: Box[PanOptions] = Empty
 
   def buildOptions =
   List(
@@ -185,7 +209,9 @@ trait FlotOptions extends BaseFlotOptions {
     modeSelection.map(v => ("selection", JsObj("mode" -> v))),
     c("shadowSize", shadowSize),
     c("grid", grid),
-    series.map(v => ("series", JsObj(v.toSeq: _*)))
+    series.map(v => ("series", JsObj(v.toSeq: _*))),
+    zoomOptions.map(v => ("zoom", v)),
+    panOptions.map(v => ("pan", v))
   )
 
 }
