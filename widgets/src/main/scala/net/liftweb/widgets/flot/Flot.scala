@@ -241,7 +241,7 @@ object Flot {
         }) + " data: " + value + "}"
     }
     val valsAndLabels = pie.values.zipWithIndex.map(vi => ValAndLabel(vi._1, pie.labels.map(_(vi._2))))
-    JsCrVar("data_" + idPlaceholder, JsRaw(valsAndLabels.map(_.toString).mkString("[", ",", "]")))
+    JsCrVar("data_" + idPlaceholder, JsRaw(valsAndLabels.mkString("[", ",", "]")))
   }
 
   /**
