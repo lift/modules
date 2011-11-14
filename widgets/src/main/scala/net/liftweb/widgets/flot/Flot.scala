@@ -32,23 +32,21 @@ import JqJE._
 
 
 /**
- * renders a flot graph using http://code.google.com/p/flot/ jQuery widget
+ * Renders a flot graph using http://code.google.com/p/flot/ jQuery widget
  * <br />
  * See the sites/flotDemo webapp for examples.
  */
 object Flot {
   /**
-   * register the resources with lift (typically in boot)
+   * Registers the resources with lift (typically in boot)
    */
-
   def init() {
-    import net.liftweb.http.ResourceServer
-
-    ResourceServer.allow({
-        case "flot" :: "jquery.flot.css" :: Nil => true
-        case "flot" :: "jquery.flot.js" :: Nil => true
-        case "flot" :: "jquery.flot.navigate.js" :: Nil => true
-        case "flot" :: "excanvas.js" :: Nil => true
+    net.liftweb.http.ResourceServer.allow({
+        case "flot" :: "jquery.flot.css"          :: Nil => true
+        case "flot" :: "jquery.flot.js"           :: Nil => true
+        case "flot" :: "jquery.flot.navigate.js"  :: Nil => true
+        case "flot" :: "jquery.flot.pie.js"       :: Nil => true
+        case "flot" :: "excanvas.js"              :: Nil => true
       })
   }
 
@@ -56,11 +54,8 @@ object Flot {
     (xml \ "script").map(x => JsRaw(x.text).cmd).foldLeft(Noop)(_ & _)
 
   /**
-   * render a flot graph
-   * <p>
-   * a comet actor should use this version
+   * Renders a flot graph. Comet actors should use this version.
    */
-
   def render(idPlaceholder: String,
              datas: List[FlotSerie],
              options: FlotOptions,
@@ -70,14 +65,24 @@ object Flot {
     renderHead() ++ Script(_renderJs(idPlaceholder, datas, options, script, caps :_*))
   }
 
+  /**
+   * Renders a flot pie graph.
+   */
+  def renderPie(idPlaceholder: String,
+             pie: Pie,
+             script: JsCmd
+  ): NodeSeq = {
+    renderHead() ++ Script(_renderJs(idPlaceholder, pie, script))
+  }
+
   def renderHead(): NodeSeq = {
     val ieExcanvasPackJs = Unparsed("<!--[if IE]><script language=\"javascript\" type=\"text/javascript\" src=\"" +
                                     urlEncode(net.liftweb.http.S.contextPath) + "/" +
                                     urlEncode(LiftRules.resourceServerPath) + "/flot/excanvas.js\"></script><![endif]-->")
 
     <head>
-      {List("flot.js", "flot.navigate.js") map(name =>
-      <script type="text/javascript" src={"/" + LiftRules.resourceServerPath + "/flot/jquery." + name}/>
+      {List("flot", "flot.navigate", "flot.pie") map(name =>
+      <script type="text/javascript" src={"/" + LiftRules.resourceServerPath + "/flot/jquery." + name + ".js"}/>
       )}
     {ieExcanvasPackJs}
       <link rel="stylesheet" href={"/" + LiftRules.resourceServerPath + "/flot/jquery.flot.css"} type="text/css"/>
@@ -112,8 +117,6 @@ object Flot {
       renderFlotShow(idPlaceholder, datas, options, script, caps :_*)
   }
 
-  //
-
   def renderFlotHide (idPlaceholder: String, caps: FlotCapability *): JsCmd =
   JsHideId(idPlaceholder) &
   renderCapability (c => c.renderHide(), caps :_*)
@@ -142,6 +145,21 @@ object Flot {
     script
   }
 
+  def renderFlotShow (
+    idPlaceholder: String,
+      pie: Pie,
+      script: JsCmd): JsCmd = {
+
+    renderCss(idPlaceholder) &
+    JsShowId(idPlaceholder) &
+    JsRaw(
+      "var plot_" + idPlaceholder +
+      " = jQuery.plot(jQuery(" + ("#"+idPlaceholder).encJs +
+      "), data_" + idPlaceholder +
+      ", {series: {pie: {show: true}}});") &
+    script
+  }
+
   // generate Javascript inside "document ready" event
 
   def callPlotFunction(idPlaceholder: String): JsCmd = JsRaw("flot_plot_"+idPlaceholder+"();")
@@ -159,8 +177,20 @@ object Flot {
                                    caps : _*)
         })) &
     OnLoad(callPlotFunction(idPlaceholder))
+  }
 
-
+  private def _renderJs (
+    idPlaceholder : String,
+    pie: Pie,
+    script: JsCmd): JsCmd = {
+    renderVars (idPlaceholder, pie) &
+    Function("flot_plot_"+idPlaceholder, Nil,
+      if (pie.values.isEmpty)
+        renderFlotHide(idPlaceholder)
+      else
+        renderFlotShow(idPlaceholder, pie, script)
+    ) &
+    OnLoad(callPlotFunction(idPlaceholder))
   }
 
   /**
@@ -169,8 +199,8 @@ object Flot {
    */
   def renderOneValue (one: (Double, Double)) : JsExp =
   one match {
-    case (Math.NaN_DOUBLE, _) => JsNull
-    case (_, Math.NaN_DOUBLE) => JsNull
+    case (Double.NaN, _) => JsNull
+    case (_, Double.NaN) => JsNull
     case (a, b) => JsArray(a, b)
   }
 
@@ -182,18 +212,12 @@ object Flot {
   def renderValues(values: List[(Double, Double)]): JsExp =
   JsArray(values.map(renderOneValue) :_*)
 
-
-  /**
-   *
-   */
-
   def renderDataSerie(idPlaceholder: String)(data: (FlotSerie, Int)): JsCmd =
   JsCrVar("data_"+idPlaceholder+"_"+(data._2 + 1), renderValues(data._1.data))
 
   /*
-   * render all variables that can be modified via Javascript after first page load (for example using Ajax or comet)
+   * Renders all variables that can be modified via Javascript after first page load (for example using Ajax or comet).
    */
-
   def renderVars (idPlaceholder : String,
                   datas: List[FlotSerie],
                   options: FlotOptions): JsCmd =
@@ -207,7 +231,18 @@ object Flot {
       JsCrVar("options_"+idPlaceholder, options.asJsObj)
   }
 
-
+  def renderVars (idPlaceholder : String,
+                  pie: Pie): JsCmd = {
+    case class ValAndLabel(value: Int, opLabel: Option[String]) {
+      override def toString = "{" +
+        (opLabel match {
+          case Some(label) => "label: '" + label + "', "
+          case None => ""
+        }) + " data: " + value + "}"
+    }
+    val valsAndLabels = pie.values.zipWithIndex.map(vi => ValAndLabel(vi._1, pie.labels.map(_(vi._2))))
+    JsCrVar("data_" + idPlaceholder, JsRaw(valsAndLabels.map(_.toString).mkString("[", ",", "]")))
+  }
 
   /**
    * render one serie:<br />
@@ -222,7 +257,6 @@ object Flot {
    * )
    * </code>
    */
-
   def renderOneSerie(data: FlotSerie, idPlaceholder: String, idSerie: Int): JsObj = {
     val info: List[Box[(String, JsExp)]] =
     List(data.label.map(v => ("label", v)),
