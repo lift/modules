@@ -23,8 +23,8 @@ import Helpers._
 
 
 trait OAuthValidator {
-  lazy val MIN_VERSION = 1.0
-  lazy val MAX_VERSION = 1.0
+  lazy val ACCEPTABLE_VERSIONS = List("1.0")
+  lazy val ALL_ACCEPTABLE_VERSIONS = ACCEPTABLE_VERSIONS.reduce("%s, %s".format(_, _))
   lazy val MAX_TIMESTAMP_AGE_MSEC = 5 * 60 * 1000
 
   val SINGLE_PARAMETERS = Set(OAuthUtil.OAUTH_CONSUMER_KEY, OAuthUtil.OAUTH_TOKEN, OAuthUtil.OAUTH_TOKEN_SECRET,
@@ -59,11 +59,11 @@ trait OAuthValidator {
   for {
     msg <- message
     verParam <- msg.getParameter(OAuthUtil.OAUTH_VERSION)
-    version <- tryo(ParseDouble(verParam.value)).filter(v => v < MIN_VERSION || MAX_VERSION < v) ?~
+    version <- tryo(verParam.value).filter(v => ACCEPTABLE_VERSIONS.contains(v)) ?~
     OAuthUtil.Problems.VERSION_REJECTED._1 ~> OAuthProblem(OAuthUtil.Problems.VERSION_REJECTED,
-                                                           (OAuthUtil.ProblemParams.OAUTH_ACCEPTABLE_VERSIONS, MIN_VERSION + "-" + MAX_VERSION))
+                                                           (OAuthUtil.ProblemParams.OAUTH_ACCEPTABLE_VERSIONS,
+                                                             ALL_ACCEPTABLE_VERSIONS))
   } yield msg
-
 
   private def validateTimestampAndNonce(message: Box[OAuthMessage]): Box[OAuthMessage] =
   for {

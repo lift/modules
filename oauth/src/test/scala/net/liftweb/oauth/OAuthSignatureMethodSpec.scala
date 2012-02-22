@@ -59,11 +59,10 @@ object OAuthSignatureMethodSpec extends Specification {
   }
 
   "OAuthValidator" should {
+    val validator = new OAuthValidator {
+      protected def oauthNonceMeta = null
+    }
     "checkSingleParameters should" in {
-      val validator = new OAuthValidator {
-        protected def oauthNonceMeta = null
-      }
-
       "return failure when have duplicate parameters" in {
         val oauthMessage = new OAuthMessage(GetRequest, "http://photos.example.net/photos", List(
           Parameter("oauth_version","1.0"),
@@ -87,6 +86,25 @@ object OAuthSignatureMethodSpec extends Specification {
         val box = validator.checkSingleParameters(Full(oauthMessage))
         box.isEmpty must be (false)
         box must_== Full(oauthMessage)
+      }
+    }
+
+    "validateVersion" in {
+      "return same box if valid" in {
+        val oauthMessage = new OAuthMessage(GetRequest, "http://photos.example.net/photos", List(
+          Parameter("oauth_version","1.0")
+        ))
+        val box = validator.validateVersion(Full(oauthMessage))
+        box.isEmpty must be (false)
+        box must_== Full(oauthMessage)
+      }
+
+      "return error if version is invalid" in {
+        val oauthMessage = new OAuthMessage(GetRequest, "http://photos.example.net/photos", List(
+          Parameter("oauth_version","6.92")
+        ))
+        val box = validator.validateVersion(Full(oauthMessage))
+        box.isEmpty must be (true)
       }
     }
   }
