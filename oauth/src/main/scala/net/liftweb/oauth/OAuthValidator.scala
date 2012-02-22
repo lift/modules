@@ -38,10 +38,10 @@ trait OAuthValidator {
   (checkSingleParameters _ andThen validateVersion _ andThen validateTimestampAndNonce _
    andThen validateSignature(accessor) )(Full(message))
 
-  private def checkSingleParameters(message: Box[OAuthMessage]): Box[OAuthMessage] = {
+  private[oauth] def checkSingleParameters(message: Box[OAuthMessage]): Box[OAuthMessage] = {
     message.flatMap(msg => msg.parameters.foldLeft[Map[String, List[String]]](Map()) {
         case (map, next) => map + (next.name -> (next.value :: map.getOrElse(next.name, Nil)))
-      }.filter{ case (name, value) => value.length < 2}.toList match {
+      }.filter{ case (name, value) => value.length > 1}.toList match {
         case Nil => message
         case xs =>
 
