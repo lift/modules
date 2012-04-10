@@ -21,10 +21,10 @@ import java.util.Date
 
 import org.specs.Specification
 
-import common.{Full,Empty}
 import http.GetRequest
 
 import OAuthUtil.Parameter
+import common.{ParamFailure, Full, Empty}
 
 
 object OAuthSignatureMethodSpec extends Specification {
@@ -57,6 +57,58 @@ object OAuthSignatureMethodSpec extends Specification {
       hmacSha1.getSignature(baseString) must_== Full("tR3+Ty81lMeYAr/Fid0kMTYa/WM=")
     }
   }
+
+  "OAuthValidator" should {
+    val validator = new OAuthValidator {
+      protected def oauthNonceMeta = null
+    }
+    "checkSingleParameters should" in {
+      "return failure when have duplicate parameters" in {
+        val oauthMessage = new OAuthMessage(GetRequest, "http://photos.example.net/photos", List(
+          Parameter("oauth_version","1.0"),
+          Parameter("oauth_version","1.0")
+        ))
+
+        val box = validator.checkSingleParameters(Full(oauthMessage))
+        box.isEmpty must be (true)
+        box match {
+          case ParamFailure(OAuthUtil.Problems.PARAMETER_REJECTED._1, Empty, Empty, _) =>
+          case _ => fail("Result box is not failure")
+        }
+      }
+
+      "return same box when parameters are distinct" in {
+        val oauthMessage = new OAuthMessage(GetRequest, "http://photos.example.net/photos", List(
+          Parameter("oauth_consumer_key","dpf43f3p2l4k3l03"),
+          Parameter("oauth_version","1.0")
+        ))
+
+        val box = validator.checkSingleParameters(Full(oauthMessage))
+        box.isEmpty must be (false)
+        box must_== Full(oauthMessage)
+      }
+    }
+
+    "validateVersion" in {
+      "return same box if valid" in {
+        val oauthMessage = new OAuthMessage(GetRequest, "http://photos.example.net/photos", List(
+          Parameter("oauth_version","1.0")
+        ))
+        val box = validator.validateVersion(Full(oauthMessage))
+        box.isEmpty must be (false)
+        box must_== Full(oauthMessage)
+      }
+
+      "return error if version is invalid" in {
+        val oauthMessage = new OAuthMessage(GetRequest, "http://photos.example.net/photos", List(
+          Parameter("oauth_version","6.92")
+        ))
+        val box = validator.validateVersion(Full(oauthMessage))
+        box.isEmpty must be (true)
+      }
+    }
+  }
+
   
   case class FakeConsumer(consumerKey:String, consumerSecret:String) extends OAuthConsumer {
 

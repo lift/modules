@@ -23,8 +23,8 @@ import Helpers._
 
 
 trait OAuthValidator {
-  lazy val MIN_VERSION = 1.0
-  lazy val MAX_VERSION = 1.0
+  lazy val ACCEPTABLE_VERSIONS = List("1.0")
+  lazy val ALL_ACCEPTABLE_VERSIONS = ACCEPTABLE_VERSIONS.reduce("%s, %s".format(_, _))
   lazy val MAX_TIMESTAMP_AGE_MSEC = 5 * 60 * 1000
 
   val SINGLE_PARAMETERS = Set(OAuthUtil.OAUTH_CONSUMER_KEY, OAuthUtil.OAUTH_TOKEN, OAuthUtil.OAUTH_TOKEN_SECRET,
@@ -38,10 +38,10 @@ trait OAuthValidator {
   (checkSingleParameters _ andThen validateVersion _ andThen validateTimestampAndNonce _
    andThen validateSignature(accessor) )(Full(message))
 
-  private def checkSingleParameters(message: Box[OAuthMessage]): Box[OAuthMessage] = {
+  private[oauth] def checkSingleParameters(message: Box[OAuthMessage]): Box[OAuthMessage] = {
     message.flatMap(msg => msg.parameters.foldLeft[Map[String, List[String]]](Map()) {
         case (map, next) => map + (next.name -> (next.value :: map.getOrElse(next.name, Nil)))
-      }.filter{ case (name, value) => value.length < 2}.toList match {
+      }.filter{ case (name, value) => value.length > 1}.toList match {
         case Nil => message
         case xs =>
 
@@ -55,15 +55,15 @@ trait OAuthValidator {
 
 
 
-  private def validateVersion(message: Box[OAuthMessage]): Box[OAuthMessage] =
+  private[oauth] def validateVersion(message: Box[OAuthMessage]): Box[OAuthMessage] =
   for {
     msg <- message
     verParam <- msg.getParameter(OAuthUtil.OAUTH_VERSION)
-    version <- tryo(ParseDouble(verParam.value)).filter(v => v < MIN_VERSION || MAX_VERSION < v) ?~
+    version <- tryo(verParam.value).filter(v => ACCEPTABLE_VERSIONS.contains(v)) ?~
     OAuthUtil.Problems.VERSION_REJECTED._1 ~> OAuthProblem(OAuthUtil.Problems.VERSION_REJECTED,
-                                                           (OAuthUtil.ProblemParams.OAUTH_ACCEPTABLE_VERSIONS, MIN_VERSION + "-" + MAX_VERSION))
+                                                           (OAuthUtil.ProblemParams.OAUTH_ACCEPTABLE_VERSIONS,
+                                                             ALL_ACCEPTABLE_VERSIONS))
   } yield msg
-
 
   private def validateTimestampAndNonce(message: Box[OAuthMessage]): Box[OAuthMessage] =
   for {
@@ -74,7 +74,7 @@ trait OAuthValidator {
   } yield msg2
 
 
-  private def validateTimestamp(timestampStr: OAuthUtil.Parameter): Box[Long] = {
+  private[oauth] def validateTimestamp(timestampStr: OAuthUtil.Parameter): Box[Long] = {
     val currentTimeMsec = millis
     val min = (currentTimeMsec - MAX_TIMESTAMP_AGE_MSEC + 500) / 1000L
     val max = (currentTimeMsec + MAX_TIMESTAMP_AGE_MSEC + 500) / 1000L
@@ -88,7 +88,7 @@ trait OAuthValidator {
     } yield timestamp
   }
 
-  private def validateNonce(message: OAuthMessage, timestamp: Long): Box[OAuthMessage] =
+  private[oauth] def validateNonce(message: OAuthMessage, timestamp: Long): Box[OAuthMessage] =
   for {
     consumerKey <- message.getConsumerKey
     token = message.getToken.map(_.value).openOr("")
@@ -107,7 +107,7 @@ trait OAuthValidator {
     }
 
 
-  private def validateSignature(accessor: OAuthAccessor)(message: Box[OAuthMessage]): Box[OAuthMessage] =
+  private[oauth] def validateSignature(accessor: OAuthAccessor)(message: Box[OAuthMessage]): Box[OAuthMessage] =
   for {
     msg <- message
     one <- msg.getParameter(OAuthUtil.OAUTH_CONSUMER_KEY)
