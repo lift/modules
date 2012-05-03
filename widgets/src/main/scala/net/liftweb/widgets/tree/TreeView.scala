@@ -132,10 +132,10 @@ class TreeView {
 
 object Tree {
   def apply(text:String) = new Tree(text, Empty, Empty, false, false, Nil)
-  def apply(text:String, id: String, hasChildren: Boolean) = new Tree(text, Full(id), Empty, false, true, Nil)
+  def apply(text:String, id: String, hasChildren: Boolean) = new Tree(text, Full(id), Empty, false, hasChildren, Nil)
   def apply(text:String, classes: String) = new Tree(text, Empty, Full(classes), false, false, Nil)
   def apply(text:String, children: List[Tree]) = new Tree(text, Empty, Empty, false, false, children)
-  def apply(text:String, classes: String, children: List[Tree]) = new Tree(text, Empty, Full(classes), false, false, children)
+  def apply(text:String, classes: String, children: List[Tree]) = new Tree(text, Empty, Full(classes), false, !children.isEmpty, children)
   def apply(text:String, classes: String, expanded: Boolean, hasChildren: Boolean, children: List[Tree]) =
     new Tree(text, Empty, Full(classes), expanded, hasChildren, children)
   def apply(text:String, id: String, classes: String, expanded: Boolean, hasChildren: Boolean, children: List[Tree]) =
